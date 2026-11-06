@@ -1,0 +1,6 @@
+---
+source: tests/snapshots.rs
+assertion_line: 68
+expression: pretty(&html)
+---
+
