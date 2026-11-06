@@ -1,0 +1,36 @@
+[package]
+name = "autumn-charts-plugin"
+description = "Charts v2 widget pack for autumn-web: axes, legends, multi-series, stacked bars, area and donut charts as script-free SVG"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.97.0"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/autumn-foundation/autumn-plugin-charts"
+keywords = ["autumn", "widgets", "charts", "svg", "maud"]
+categories = ["web-programming", "visualization"]
+exclude = ["tests/fixtures/axe-core/"]
+
+[dependencies]
+autumn-web = { version = "0.10", default-features = false, features = ["maud"] }
+maud = "0.27"
+
+[dev-dependencies]
+insta = "1"
+proptest = "1"
+serde = "1"
+serde_json = "1"
+tokio = { version = "1", features = ["macros", "rt-multi-thread", "time"] }
+
+[features]
+# The browser half of the conformance gate. It needs Chromium.
+system-tests = ["autumn-web/system-tests", "autumn-web/htmx"]
+
+[lints.rust]
+missing_docs = "warn"
+unsafe_code = "forbid"
+
+[lints.clippy]
+pedantic = { level = "warn", priority = -1 }
+nursery = { level = "warn", priority = -1 }
+unwrap_used = "warn"
+expect_used = "warn"

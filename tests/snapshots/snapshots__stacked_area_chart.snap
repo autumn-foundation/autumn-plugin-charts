@@ -1,0 +1,127 @@
+---
+source: tests/snapshots.rs
+expression: pretty(&html)
+---
+<figure class="autumn-charts-chart autumn-charts-chart--area">
+<figcaption class="autumn-charts-title">Sales</figcaption>
+<svg class="autumn-charts-svg" viewBox="0 0 640 320" role="img" aria-label="Stacked area chart with 2 series and 4 categories. Values range from 7 to 19." focusable="false">
+<g aria-hidden="true">
+<line class="autumn-charts-grid" x1="28" y1="292" x2="624" y2="292">
+</line>
+<text class="autumn-charts-tick autumn-charts-tick--y" x="22" y="296" text-anchor="end">0</text>
+<line class="autumn-charts-grid" x1="28" y1="200" x2="624" y2="200">
+</line>
+<text class="autumn-charts-tick autumn-charts-tick--y" x="22" y="204" text-anchor="end">10</text>
+<line class="autumn-charts-grid" x1="28" y1="108" x2="624" y2="108">
+</line>
+<text class="autumn-charts-tick autumn-charts-tick--y" x="22" y="112" text-anchor="end">20</text>
+<line class="autumn-charts-grid" x1="28" y1="16" x2="624" y2="16">
+</line>
+<text class="autumn-charts-tick autumn-charts-tick--y" x="22" y="20" text-anchor="end">30</text>
+<line class="autumn-charts-axis" x1="28" y1="292" x2="624" y2="292">
+</line>
+<line class="autumn-charts-axis" x1="28" y1="16" x2="28" y2="292">
+</line>
+<text class="autumn-charts-tick autumn-charts-tick--x" x="40" y="310" text-anchor="middle">Q1</text>
+<text class="autumn-charts-tick autumn-charts-tick--x" x="230.67" y="310" text-anchor="middle">Q2</text>
+<text class="autumn-charts-tick autumn-charts-tick--x" x="421.33" y="310" text-anchor="middle">Q3</text>
+<text class="autumn-charts-tick autumn-charts-tick--x" x="612" y="310" text-anchor="middle">Q4</text>
+</g>
+<path class="autumn-charts-area autumn-charts-s0" d="M40,181.6 L230.67,117.2 L421.33,227.6 L612,154 L612,292 L421.33,292 L230.67,292 L40,292 Z" aria-hidden="true">
+</path>
+<path class="autumn-charts-line autumn-charts-s0" d="M40,181.6 L230.67,117.2 L421.33,227.6 L612,154" aria-hidden="true">
+</path>
+<g class="autumn-charts-mark">
+<title>North, Q1: 12</title>
+<path class="autumn-charts-marker autumn-charts-s0" d="M36.5,181.6 A3.5,3.5 0 1,0 43.5,181.6 A3.5,3.5 0 1,0 36.5,181.6 Z">
+</path>
+</g>
+<g class="autumn-charts-mark">
+<title>North, Q2: 19</title>
+<path class="autumn-charts-marker autumn-charts-s0" d="M227.17,117.2 A3.5,3.5 0 1,0 234.17,117.2 A3.5,3.5 0 1,0 227.17,117.2 Z">
+</path>
+</g>
+<g class="autumn-charts-mark">
+<title>North, Q3: 7</title>
+<path class="autumn-charts-marker autumn-charts-s0" d="M417.83,227.6 A3.5,3.5 0 1,0 424.83,227.6 A3.5,3.5 0 1,0 417.83,227.6 Z">
+</path>
+</g>
+<g class="autumn-charts-mark">
+<title>North, Q4: 15</title>
+<path class="autumn-charts-marker autumn-charts-s0" d="M608.5,154 A3.5,3.5 0 1,0 615.5,154 A3.5,3.5 0 1,0 608.5,154 Z">
+</path>
+</g>
+<path class="autumn-charts-area autumn-charts-s1" d="M40,108 L230.67,16 L421.33,98.8 L612,66.6 L612,154 L421.33,227.6 L230.67,117.2 L40,181.6 Z" aria-hidden="true">
+</path>
+<path class="autumn-charts-line autumn-charts-s1" d="M40,108 L230.67,16 L421.33,98.8 L612,66.6" aria-hidden="true">
+</path>
+<g class="autumn-charts-mark">
+<title>South, Q1: 8</title>
+<path class="autumn-charts-marker autumn-charts-s1" d="M36.85,104.85 L43.15,104.85 L43.15,111.15 L36.85,111.15 Z">
+</path>
+</g>
+<g class="autumn-charts-mark">
+<title>South, Q2: 11</title>
+<path class="autumn-charts-marker autumn-charts-s1" d="M227.52,12.85 L233.82,12.85 L233.82,19.15 L227.52,19.15 Z">
+</path>
+</g>
+<g class="autumn-charts-mark">
+<title>South, Q3: 14</title>
+<path class="autumn-charts-marker autumn-charts-s1" d="M418.18,95.65 L424.48,95.65 L424.48,101.95 L418.18,101.95 Z">
+</path>
+</g>
+<g class="autumn-charts-mark">
+<title>South, Q4: 9.5</title>
+<path class="autumn-charts-marker autumn-charts-s1" d="M608.85,63.45 L615.15,63.45 L615.15,69.75 L608.85,69.75 Z">
+</path>
+</g>
+</svg>
+<ul class="autumn-charts-legend">
+<li class="autumn-charts-legend-item">
+<svg class="autumn-charts-swatch autumn-charts-s0" viewBox="0 0 24 12" aria-hidden="true" focusable="false">
+<path class="autumn-charts-swatch-line" d="M1,6H23">
+</path>
+<path class="autumn-charts-swatch-marker" d="M9,6 A3,3 0 1,0 15,6 A3,3 0 1,0 9,6 Z">
+</path>
+</svg>North</li>
+<li class="autumn-charts-legend-item">
+<svg class="autumn-charts-swatch autumn-charts-s1" viewBox="0 0 24 12" aria-hidden="true" focusable="false">
+<path class="autumn-charts-swatch-line" d="M1,6H23">
+</path>
+<path class="autumn-charts-swatch-marker" d="M9.3,3.3 L14.7,3.3 L14.7,8.7 L9.3,8.7 Z">
+</path>
+</svg>South</li>
+</ul>
+<table class="autumn-charts-table">
+<caption>Sales</caption>
+<thead>
+<tr>
+<th scope="col">Category</th>
+<th scope="col">North</th>
+<th scope="col">South</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<th scope="row">Q1</th>
+<td>12</td>
+<td>8</td>
+</tr>
+<tr>
+<th scope="row">Q2</th>
+<td>19</td>
+<td>11</td>
+</tr>
+<tr>
+<th scope="row">Q3</th>
+<td>7</td>
+<td>14</td>
+</tr>
+<tr>
+<th scope="row">Q4</th>
+<td>15</td>
+<td>9.5</td>
+</tr>
+</tbody>
+</table>
+</figure>
