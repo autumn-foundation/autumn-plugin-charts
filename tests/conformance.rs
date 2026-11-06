@@ -46,7 +46,8 @@ fn the_pack_links_its_css_and_no_script() {
     assert_eq!(pack.name(), "charts");
     assert_eq!(ASSETS.namespace(), "charts");
     let head = pack.head().into_string();
-    assert!(head.contains("charts.css"), "{head}");
+    assert!(head.contains("/charts/charts."), "{head}");
+    assert!(head.contains(".css"), "{head}");
     assert!(head.contains("integrity="), "{head}");
     assert!(!head.contains("<script"), "{head}");
 }
@@ -56,7 +57,7 @@ fn the_pack_has_no_script_asset() {
     assert!(
         ASSETS
             .iter()
-            .all(|asset| !asset.logical_path().ends_with(".js")),
+            .all(|asset| !asset.logical_path().to_ascii_lowercase().ends_with(".js")),
         "the charts need no script"
     );
 }

@@ -238,8 +238,8 @@ proptest! {
     }
 
     #[test]
-    fn scale_is_monotonic(a in any_f64(), b in any_f64(), x in any_f64(), y in any_f64()) {
-        prop_assume!(x.is_finite() && y.is_finite() && x <= y);
+    fn scale_is_monotonic(a in any_f64(), b in any_f64(), p in -1e9..1e9f64, q in -1e9..1e9f64) {
+        let (x, y) = if p <= q { (p, q) } else { (q, p) };
         let (d0, d1) = domain([a, b], false);
         let up = LinearScale::new((d0, d1), (0.0, 100.0));
         prop_assert!(up.map(x) <= up.map(y));

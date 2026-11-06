@@ -14,11 +14,11 @@ const MONTHS: [&str; 4] = ["Jan", "Feb", "Mar", "Apr"];
 const VISITS: [f64; 4] = [0.0, 20.0, 60.0, 100.0];
 const SIGNUPS: [f64; 4] = [10.0, 30.0, 25.0, 40.0];
 
-fn one() -> [Series<'static>; 1] {
+const fn one() -> [Series<'static>; 1] {
     [Series::new("Visits", &VISITS)]
 }
 
-fn two() -> [Series<'static>; 2] {
+const fn two() -> [Series<'static>; 2] {
     [
         Series::new("Visits", &VISITS),
         Series::new("Signups", &SIGNUPS),

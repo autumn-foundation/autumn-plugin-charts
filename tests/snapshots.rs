@@ -10,7 +10,7 @@ const NORTH: [f64; 4] = [12.0, 19.0, 7.0, 15.0];
 const SOUTH: [f64; 4] = [8.0, 11.0, 14.0, 9.5];
 const NET: [f64; 4] = [-6.0, 4.0, f64::NAN, 10.0];
 
-fn regions() -> [Series<'static>; 2] {
+const fn regions() -> [Series<'static>; 2] {
     [Series::new("North", &NORTH), Series::new("South", &SOUTH)]
 }
 

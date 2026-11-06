@@ -1,0 +1,74 @@
+---
+source: tests/snapshots.rs
+expression: pretty(&html)
+---
+<figure class="autumn-charts-chart autumn-charts-chart--donut">
+<figcaption class="autumn-charts-title">Market share</figcaption>
+<svg class="autumn-charts-svg" viewBox="0 0 200 200" role="img" aria-label="Market share" focusable="false">
+<title>Market share</title>
+<desc>Donut chart with 3 slices. Total 100.</desc>
+<g class="autumn-charts-mark">
+<title>Rust: 45 (45%)</title>
+<path class="autumn-charts-slice autumn-charts-s0" d="M100,4 A96,96 0 0,1 129.67,191.3 L118.54,157.06 A60,60 0 0,0 100,40 Z">
+</path>
+</g>
+<g class="autumn-charts-mark">
+<title>Go: 30 (30%)</title>
+<path class="autumn-charts-slice autumn-charts-s1" d="M129.67,191.3 A96,96 0 0,1 4,100 L40,100 A60,60 0 0,0 118.54,157.06 Z">
+</path>
+</g>
+<g class="autumn-charts-mark">
+<title>Zig: 25 (25%)</title>
+<path class="autumn-charts-slice autumn-charts-s2" d="M4,100 A96,96 0 0,1 100,4 L100,40 A60,60 0 0,0 40,100 Z">
+</path>
+</g>
+<g class="autumn-charts-center" aria-hidden="true">
+<text class="autumn-charts-total" x="100" y="102" text-anchor="middle">100</text>
+<text class="autumn-charts-center-label" x="100" y="122" text-anchor="middle">Teams</text>
+</g>
+</svg>
+<ul class="autumn-charts-legend">
+<li class="autumn-charts-legend-item">
+<svg class="autumn-charts-swatch autumn-charts-s0" viewBox="0 0 24 12" aria-hidden="true" focusable="false">
+<path class="autumn-charts-swatch-fill" d="M2,1H22V11H2Z">
+</path>
+</svg>Rust: 45 (45%)</li>
+<li class="autumn-charts-legend-item">
+<svg class="autumn-charts-swatch autumn-charts-s1" viewBox="0 0 24 12" aria-hidden="true" focusable="false">
+<path class="autumn-charts-swatch-fill" d="M2,1H22V11H2Z">
+</path>
+</svg>Go: 30 (30%)</li>
+<li class="autumn-charts-legend-item">
+<svg class="autumn-charts-swatch autumn-charts-s2" viewBox="0 0 24 12" aria-hidden="true" focusable="false">
+<path class="autumn-charts-swatch-fill" d="M2,1H22V11H2Z">
+</path>
+</svg>Zig: 25 (25%)</li>
+</ul>
+<table class="autumn-charts-table autumn-visually-hidden">
+<caption>Market share</caption>
+<thead>
+<tr>
+<th scope="col">Category</th>
+<th scope="col">Value</th>
+<th scope="col">Share</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<th scope="row">Rust</th>
+<td>45</td>
+<td>45%</td>
+</tr>
+<tr>
+<th scope="row">Go</th>
+<td>30</td>
+<td>30%</td>
+</tr>
+<tr>
+<th scope="row">Zig</th>
+<td>25</td>
+<td>25%</td>
+</tr>
+</tbody>
+</table>
+</figure>

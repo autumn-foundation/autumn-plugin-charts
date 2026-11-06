@@ -1,0 +1,228 @@
+/* Charts v2. Script-free SVG. The markup holds the geometry. This file
+   holds the look. It uses only the public tokens and --autumn-charts-*. */
+
+.autumn-charts-chart {
+    --autumn-charts-color: var(--primary);
+    --autumn-charts-grid: var(--border);
+    --autumn-charts-axis: var(--text-muted);
+    --autumn-charts-area-opacity: 0.18;
+    display: block;
+    margin: 0 0 var(--space-4);
+    max-width: 100%;
+    color: var(--text);
+    font-family: var(--font-family);
+}
+
+.autumn-charts-title {
+    margin: 0 0 var(--space-2);
+    font-size: var(--font-size-md);
+    font-weight: var(--font-weight-semibold);
+    color: var(--text);
+}
+
+.autumn-charts-svg {
+    display: block;
+    width: 100%;
+    height: auto;
+    overflow: visible;
+}
+
+.autumn-charts-chart--donut .autumn-charts-svg {
+    max-width: 16rem;
+}
+
+/* Series styles: a color, a dash and a marker shape. Color is not the
+   only cue. */
+.autumn-charts-s0 { --autumn-charts-color: var(--primary); --autumn-charts-dash: none; }
+.autumn-charts-s1 { --autumn-charts-color: var(--info); --autumn-charts-dash: 8 4; }
+.autumn-charts-s2 { --autumn-charts-color: var(--warning); --autumn-charts-dash: 2 3; }
+.autumn-charts-s3 { --autumn-charts-color: var(--success); --autumn-charts-dash: 12 4 2 4; }
+.autumn-charts-s4 { --autumn-charts-color: var(--danger); --autumn-charts-dash: 4 4; }
+.autumn-charts-s5 { --autumn-charts-color: var(--text-muted); --autumn-charts-dash: 1 5; }
+
+/* Axes and grid. */
+.autumn-charts-grid {
+    stroke: var(--autumn-charts-grid);
+    stroke-width: 1;
+}
+
+.autumn-charts-axis,
+.autumn-charts-zero {
+    stroke: var(--autumn-charts-axis);
+    stroke-width: 1;
+}
+
+.autumn-charts-tick,
+.autumn-charts-axis-label,
+.autumn-charts-center-label {
+    fill: var(--text-muted);
+    font-size: 12px;
+}
+
+.autumn-charts-axis-label {
+    font-weight: var(--font-weight-medium);
+}
+
+/* Marks. */
+.autumn-charts-line {
+    fill: none;
+    stroke: var(--autumn-charts-color);
+    stroke-width: 2;
+    stroke-dasharray: var(--autumn-charts-dash);
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.autumn-charts-area {
+    fill: var(--autumn-charts-color);
+    fill-opacity: var(--autumn-charts-area-opacity);
+    stroke: none;
+}
+
+.autumn-charts-bar,
+.autumn-charts-slice,
+.autumn-charts-marker {
+    fill: var(--autumn-charts-color);
+}
+
+.autumn-charts-slice {
+    stroke: var(--bg);
+    stroke-width: 1.5;
+}
+
+.autumn-charts-total {
+    fill: var(--text);
+    font-size: 28px;
+    font-weight: var(--font-weight-semibold);
+}
+
+/* Many points: markers show on hover and focus only. */
+.autumn-charts-chart--dense .autumn-charts-marker {
+    opacity: 0;
+}
+
+/* Hover and focus details. A focusable mark has a tip. */
+.autumn-charts-mark {
+    outline: none;
+}
+
+.autumn-charts-mark:hover .autumn-charts-bar,
+.autumn-charts-mark:hover .autumn-charts-slice,
+.autumn-charts-mark:hover .autumn-charts-marker,
+.autumn-charts-mark:focus-visible .autumn-charts-bar,
+.autumn-charts-mark:focus-visible .autumn-charts-slice,
+.autumn-charts-mark:focus-visible .autumn-charts-marker {
+    opacity: 1;
+    stroke: var(--text);
+    stroke-width: 2;
+}
+
+.autumn-charts-tip {
+    visibility: hidden;
+    fill: var(--text);
+    font-size: 12px;
+    font-weight: var(--font-weight-semibold);
+    paint-order: stroke;
+    stroke: var(--bg);
+    stroke-width: 4px;
+    stroke-linejoin: round;
+    pointer-events: none;
+}
+
+.autumn-charts-mark:hover .autumn-charts-tip,
+.autumn-charts-mark:focus-visible .autumn-charts-tip {
+    visibility: visible;
+}
+
+/* In a donut, the tip goes in the centre, in place of the total. */
+.autumn-charts-svg:has(.autumn-charts-mark:hover, .autumn-charts-mark:focus-visible) .autumn-charts-center {
+    visibility: hidden;
+}
+
+/* Legend. */
+.autumn-charts-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-4);
+    margin: var(--space-2) 0 0;
+    padding: 0;
+    list-style: none;
+    font-size: var(--font-size-sm);
+    color: var(--text);
+}
+
+.autumn-charts-legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+}
+
+.autumn-charts-swatch {
+    width: 1.5rem;
+    height: 0.75rem;
+    flex: none;
+}
+
+.autumn-charts-swatch-line {
+    fill: none;
+    stroke: var(--autumn-charts-color);
+    stroke-width: 2;
+    stroke-dasharray: var(--autumn-charts-dash);
+}
+
+.autumn-charts-swatch-marker,
+.autumn-charts-swatch-fill {
+    fill: var(--autumn-charts-color);
+}
+
+/* Data table. */
+.autumn-charts-data {
+    margin-top: var(--space-2);
+    font-size: var(--font-size-sm);
+}
+
+.autumn-charts-data > summary {
+    cursor: pointer;
+    color: var(--text);
+}
+
+.autumn-charts-table {
+    margin-top: var(--space-2);
+    border-collapse: collapse;
+    font-size: var(--font-size-sm);
+    color: var(--text);
+}
+
+.autumn-charts-table caption {
+    text-align: start;
+    font-weight: var(--font-weight-semibold);
+    padding-bottom: var(--space-1);
+}
+
+.autumn-charts-table th,
+.autumn-charts-table td {
+    padding: var(--space-1) var(--space-2);
+    border-bottom: 1px solid var(--border);
+    text-align: start;
+}
+
+.autumn-charts-table td {
+    text-align: end;
+    font-variant-numeric: tabular-nums;
+}
+
+@media (forced-colors: active) {
+    .autumn-charts-line,
+    .autumn-charts-swatch-line {
+        stroke: CanvasText;
+    }
+
+    .autumn-charts-bar,
+    .autumn-charts-slice,
+    .autumn-charts-marker,
+    .autumn-charts-area,
+    .autumn-charts-swatch-marker,
+    .autumn-charts-swatch-fill {
+        fill: CanvasText;
+    }
+}

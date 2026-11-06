@@ -1,0 +1,80 @@
+---
+source: tests/snapshots.rs
+expression: pretty(&html)
+---
+<figure class="autumn-charts-chart autumn-charts-chart--bar">
+<figcaption class="autumn-charts-title">Net change</figcaption>
+<svg class="autumn-charts-svg" viewBox="0 0 640 320" role="img" aria-label="Net change" focusable="false">
+<title>Net change</title>
+<desc>Bar chart with 1 series and 4 categories. Values range from -6 to 10.</desc>
+<g aria-hidden="true">
+<line class="autumn-charts-grid" x1="33" y1="292" x2="624" y2="292">
+</line>
+<text class="autumn-charts-tick autumn-charts-tick--y" x="27" y="296" text-anchor="end">-10</text>
+<line class="autumn-charts-grid" x1="33" y1="223" x2="624" y2="223">
+</line>
+<text class="autumn-charts-tick autumn-charts-tick--y" x="27" y="227" text-anchor="end">-5</text>
+<line class="autumn-charts-grid" x1="33" y1="154" x2="624" y2="154">
+</line>
+<text class="autumn-charts-tick autumn-charts-tick--y" x="27" y="158" text-anchor="end">0</text>
+<line class="autumn-charts-grid" x1="33" y1="85" x2="624" y2="85">
+</line>
+<text class="autumn-charts-tick autumn-charts-tick--y" x="27" y="89" text-anchor="end">5</text>
+<line class="autumn-charts-grid" x1="33" y1="16" x2="624" y2="16">
+</line>
+<text class="autumn-charts-tick autumn-charts-tick--y" x="27" y="20" text-anchor="end">10</text>
+<line class="autumn-charts-zero" x1="33" y1="154" x2="624" y2="154">
+</line>
+<line class="autumn-charts-axis" x1="33" y1="292" x2="624" y2="292">
+</line>
+<line class="autumn-charts-axis" x1="33" y1="16" x2="33" y2="292">
+</line>
+<text class="autumn-charts-tick autumn-charts-tick--x" x="106.88" y="310" text-anchor="middle">Q1</text>
+<text class="autumn-charts-tick autumn-charts-tick--x" x="254.63" y="310" text-anchor="middle">Q2</text>
+<text class="autumn-charts-tick autumn-charts-tick--x" x="402.38" y="310" text-anchor="middle">Q3</text>
+<text class="autumn-charts-tick autumn-charts-tick--x" x="550.13" y="310" text-anchor="middle">Q4</text>
+</g>
+<g class="autumn-charts-mark">
+<title>Net, Q1: -6</title>
+<rect class="autumn-charts-bar autumn-charts-s0" x="53.69" y="154" width="106.38" height="82.8">
+</rect>
+</g>
+<g class="autumn-charts-mark">
+<title>Net, Q2: 4</title>
+<rect class="autumn-charts-bar autumn-charts-s0" x="201.44" y="98.8" width="106.38" height="55.2">
+</rect>
+</g>
+<g class="autumn-charts-mark">
+<title>Net, Q4: 10</title>
+<rect class="autumn-charts-bar autumn-charts-s0" x="496.94" y="16" width="106.38" height="138">
+</rect>
+</g>
+</svg>
+<table class="autumn-charts-table autumn-visually-hidden">
+<caption>Net change</caption>
+<thead>
+<tr>
+<th scope="col">Category</th>
+<th scope="col">Net</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<th scope="row">Q1</th>
+<td>-6</td>
+</tr>
+<tr>
+<th scope="row">Q2</th>
+<td>4</td>
+</tr>
+<tr>
+<th scope="row">Q3</th>
+<td>No value</td>
+</tr>
+<tr>
+<th scope="row">Q4</th>
+<td>10</td>
+</tr>
+</tbody>
+</table>
+</figure>
