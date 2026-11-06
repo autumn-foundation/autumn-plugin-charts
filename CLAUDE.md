@@ -16,7 +16,8 @@ widget contract in autumn `docs/guide/widget-packs.md` and ADR 0030.
 - **The data table stays.** Each chart writes one. `TableMode` changes
   only where it shows.
 - **Color is not the only cue.** Each series style has a color, a dash and
-  a marker shape.
+  a marker shape. Bars and slices have the shape cut out of them.
+- **No `id`.** Two charts on one page must not collide.
 - **Snapshots.** A markup change updates `tests/snapshots/`. Read the diff.
 - **Comments stand alone.** No review rounds or findings labels. Write in
   ASD-STE100: short sentences, active voice.

@@ -18,14 +18,17 @@ JavaScript off and under a strict CSP.
 
 Each chart has:
 
-- **Axes and ticks.** "Nice" ticks (1, 2 or 5 × 10ⁿ). Axis titles with
-  `x_label` and `y_label`.
-- **A legend.** It shows for two or more series. Set it with `legend`.
+- **Axes and ticks.** A value axis with "nice" ticks (1, 2 or 5 × 10ⁿ),
+  and a category axis. Axis titles with `x_label` and `y_label`.
+- **A legend.** It shows for two or more series, and on each donut. Set it
+  with `legend`.
 - **A data table.** It is always in the markup. See [Data table](#data-table).
 - **Hover details.** Each mark has a `<title>`. With `focusable`, each mark
-  is a tab stop and shows a tip. See [Keyboard](#keyboard).
-- **Series styles.** A token color, a dash pattern and a marker shape for
-  each series. Six styles, then they repeat. Color is not the only cue.
+  is a tab stop with an `aria-label` and a tip. See [Keyboard](#keyboard).
+- **Series styles.** Color is not the only cue. A line or an area has a
+  token color, a dash pattern and a marker shape. A bar or a slice has a
+  token color and the marker shape cut out of it. The legend shows the
+  same cues. Six styles, then they repeat.
 
 ## Install
 
@@ -34,7 +37,7 @@ Each chart has:
 autumn-charts-plugin = { git = "https://github.com/autumn-foundation/autumn-plugin-charts" }
 ```
 
-```rust
+```rust,ignore
 use autumn_charts_plugin::ChartsPlugin;
 
 autumn_web::app().plugin(ChartsPlugin)
@@ -43,7 +46,7 @@ autumn_web::app().plugin(ChartsPlugin)
 The plugin serves the pack CSS and adds the stories to `/_stories`. In the
 layout `<head>`, after the core widget CSS, add the pack link:
 
-```rust
+```rust,ignore
 head {
     link rel="stylesheet" href=(autumn_web::ui::WIDGETS_CSS_PATH);
     (autumn_charts_plugin::pack().head())
@@ -83,27 +86,32 @@ Each builder also implements `maud::Render`, so `(chart)` works in
 ### Data
 
 - A `Series` has a name and one value for each category.
-- A non-finite value (`NaN`, `inf`) is missing. A line breaks there. A bar
-  is not drawn. The table shows "No value".
-- A short series is missing its last values. Values past the last category
-  are not used.
-- In a stacked area, a missing value adds 0. In a stack, positive and
-  negative values stack apart, from zero.
-- A donut draws each positive value. The table lists all values.
+- A non-finite value (`NaN`, `inf`) is missing. A line breaks there. The
+  chart draws no bar for it. The table shows "No value".
+- A short series is missing its last values. The chart ignores values past
+  the last category.
+- In a stack, positive and negative values stack apart, from zero. In a
+  stacked area, a missing value adds 0. Give each series of a stacked area
+  one sign: a series that changes sign draws a crossed shape.
+- A donut draws each positive value. The table lists all values. A share
+  that is not 0 or all shows as `<0.1%` or `>99.9%`, never as `0%` or
+  `100%`.
+- Past 40 categories, markers show only on hover and focus.
 
 ### Options
 
 | Method | Charts | Effect |
 |---|---|---|
-| `desc` | all | The SVG `<desc>`. The default sums up the data. |
-| `format` | all | A `fn(f64) -> String` for ticks, tips, the legend and the table. |
+| `desc` | all | The SVG name for screen readers. The default gives the chart type, the counts and the value range. |
+| `format` | all | A `&dyn Fn(f64) -> String` for ticks, tips, the summary and the table, and the donut legend and total. It can capture a locale. |
+| `words` | all | The fixed words in the table: `Words::new().category(…).no_value(…)`. |
 | `legend` | all | Show or hide the legend. |
 | `focusable` | all | Make each mark a tab stop with a tip. |
 | `table`, `table_label` | all | Where the data table shows. |
 | `hide_title` | all | Hide the `<figcaption>` visually. |
 | `class`, `options` | all | A root class, and the `data-*`/`hx-*` passthrough. |
 | `x_label`, `y_label` | line, bar, area | Axis titles. |
-| `min`, `max`, `ticks` | line, bar, area | The y domain and about how many ticks. |
+| `min`, `max`, `ticks` | line, bar, area | The y domain and about how many ticks (1 to 18). A non-finite `min` or `max` does nothing. With a `min` above 0, bars and areas draw from the axis. |
 | `zero_baseline` | line | Put 0 in the y domain. Bars and areas always have it. |
 | `stacked` | bar, area | Stack the series. |
 | `center_label` | donut | A label under the total. |
@@ -112,7 +120,10 @@ Each builder also implements `maud::Render`, so `(chart)` works in
 
 Each chart writes a `<table>` with a `<caption>`, a header for each series
 and a row header for each category. It is the text alternative for the
-chart.
+chart. The caption is the title, then the `y_label`.
+
+The `<figcaption>` names the figure. The summary (`desc`) names the SVG,
+so a screen reader does not read the title two times.
 
 | `TableMode` | Effect |
 |---|---|
@@ -128,15 +139,19 @@ With `focusable`:
 
 | Key | Effect |
 |---|---|
-| Tab | Moves to the next mark. The tip shows its series, category and value. |
+| Tab | Moves to the next mark. The tip shows its series, category and value. The order is series by series: each value of the first series, then each value of the next. |
 | Shift+Tab | Moves to the previous mark. |
+
+Each mark is one tab stop. Use `focusable` only on a chart with few marks.
+The focused mark has an outline. The tip stays while the pointer is on the
+mark or on its tip.
 
 In a donut, the tip shows in the centre, in place of the total. The SVG is
 `role="group"`, and each mark is `role="img"` with an `aria-label`.
 
 ## Styling
 
-The pack CSS uses only the public tokens. Override these properties on
+All colors in the pack CSS are public tokens. Override these properties on
 `.autumn-charts-chart`:
 
 | Property | Default |
@@ -145,9 +160,21 @@ The pack CSS uses only the public tokens. Override these properties on
 | `--autumn-charts-axis` | `var(--text-muted)` |
 | `--autumn-charts-area-opacity` | `0.18` |
 
-Series colors are `--primary`, `--info`, `--warning`, `--success`,
-`--danger` and `--text-muted`. Override `--autumn-charts-color` on
-`.autumn-charts-s0` … `.autumn-charts-s5`.
+Each series class `.autumn-charts-s0` … `.autumn-charts-s5` sets
+`--autumn-charts-color` (`--primary`, `--info`, `--warning`, `--success`,
+`--danger`, `--text-muted`) and `--autumn-charts-dash`. To change one, use
+a selector that is more specific, for example
+`.my-report .autumn-charts-s0 { --autumn-charts-color: var(--danger); }`.
+
+In forced-colors mode, marks use `CanvasText`, gaps and cut-outs use
+`Canvas`, and focus uses `Highlight`.
+
+## Limits
+
+- The x axis shows categories. It has no number or time scale.
+- SVG text scales with the chart. In a narrow chart, labels are small.
+- The default summary is English. Set `desc` and `words` for another
+  language.
 
 ## Tests
 

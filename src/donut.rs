@@ -4,14 +4,17 @@ use std::f64::consts::{FRAC_PI_2, TAU};
 
 use maud::{Markup, Render, html};
 
-use crate::chart::{Common, NO_VALUE, Swatch, Tip, common_setters};
-use crate::svg::{num, style_class};
+use crate::cartesian::GLYPH;
+use crate::chart::{Common, Swatch, Tip, common_setters};
+use crate::svg::{marker, num, style_class};
 
 /// The `viewBox` size, the centre and the outer and inner radius.
 const SIZE: f64 = 200.0;
 const C: f64 = 100.0;
 const R: f64 = 96.0;
 const INNER: f64 = 60.0;
+/// The shortest arc that has room for the marker shape.
+const GLYPH_ROOM: f64 = 14.0;
 
 /// One drawn slice.
 struct Slice<'s> {
@@ -57,8 +60,8 @@ impl<'a> DonutChart<'a> {
         self
     }
 
-    /// The drawn slices and the total. Shares come from values divided by
-    /// the largest value, so the sum does not overflow.
+    /// The drawn slices and the total. The code divides each value by the
+    /// largest value, so the sum does not overflow.
     fn slices(&self) -> (Vec<Slice<'a>>, f64) {
         let valid = |v: f64| v.is_finite() && v > 0.0;
         let largest = self
@@ -106,7 +109,15 @@ impl<'a> DonutChart<'a> {
     }
 
     /// The share as a percent, with at most one decimal.
+    /// The share as a percent, with at most one decimal. A share that is
+    /// not all or nothing never shows as `100%` or `0%`.
     fn percent(share: f64) -> String {
+        if share > 0.0 && share < 0.0005 {
+            return "<0.1%".to_owned();
+        }
+        if share < 1.0 && share > 0.9995 {
+            return ">99.9%".to_owned();
+        }
         let text = format!("{:.1}", share * 100.0);
         format!("{}%", text.trim_end_matches('0').trim_end_matches('.'))
     }
@@ -138,10 +149,22 @@ impl<'a> DonutChart<'a> {
         let body = html! {
             @for slice in &slices {
                 @let class = format!("autumn-charts-slice {}", style_class(slice.style));
-                @let shape = if full {
-                    html! { path class=(class) d=(ring()) fill-rule="evenodd" {} }
-                } else {
-                    html! { path class=(class) d=(sector(slice.start, slice.sweep)) {} }
+                @let mid = slice.sweep.mul_add(0.5, slice.start);
+                @let shape = html! {
+                    @if full {
+                        path class=(class) d=(ring()) fill-rule="evenodd" {}
+                    } @else {
+                        path class=(class) d=(sector(slice.start, slice.sweep)) {}
+                    }
+                    // The marker shape cut out of the slice: a cue that is not color.
+                    @if slice.sweep * f64::midpoint(R, INNER) >= GLYPH_ROOM {
+                        path class="autumn-charts-glyph" d=(marker(
+                            slice.style,
+                            f64::midpoint(R, INNER).mul_add(mid.cos(), C),
+                            f64::midpoint(R, INNER).mul_add(mid.sin(), C),
+                            GLYPH,
+                        )) {}
+                    }
                 };
                 (self.common.mark(&self.label(slice), &shape, tip))
             }
@@ -177,9 +200,12 @@ impl<'a> DonutChart<'a> {
                 let value_text = if value.is_finite() {
                     self.common.text(*value)
                 } else {
-                    NO_VALUE.to_owned()
+                    self.common.words.no_value.to_owned()
                 };
-                let share = shown.map_or_else(|| NO_VALUE.to_owned(), |s| Self::percent(s.share));
+                let share = shown.map_or_else(
+                    || self.common.words.no_value.to_owned(),
+                    |s| Self::percent(s.share),
+                );
                 (*label, vec![value_text, share])
             })
             .collect();
@@ -191,7 +217,7 @@ impl<'a> DonutChart<'a> {
                 @if self.common.shows_legend(legend.len(), true) {
                     (Common::legend(Swatch::Fill, &legend))
                 }
-                (self.common.table(&["Category", "Value", "Share"], &rows))
+                (self.common.table(&[self.common.words.category, self.common.words.value, self.common.words.share], &rows, None))
             },
         )
     }
@@ -213,11 +239,25 @@ fn at(angle: f64, r: f64) -> String {
 }
 
 /// An annular sector from `start`, clockwise by `sweep`.
+///
+/// A sweep past half a turn draws as two arcs, so the ends of one arc never
+/// meet. An arc with equal ends draws nothing.
 fn sector(start: f64, sweep: f64) -> String {
     let end = start + sweep;
-    let large = u8::from(sweep > std::f64::consts::PI);
+    if sweep > std::f64::consts::PI {
+        let mid = sweep.mul_add(0.5, start);
+        return format!(
+            "M{} A{R},{R} 0 0,1 {} A{R},{R} 0 0,1 {} L{} A{INNER},{INNER} 0 0,0 {} A{INNER},{INNER} 0 0,0 {} Z",
+            at(start, R),
+            at(mid, R),
+            at(end, R),
+            at(end, INNER),
+            at(mid, INNER),
+            at(start, INNER),
+        );
+    }
     format!(
-        "M{} A{R},{R} 0 {large},1 {} L{} A{INNER},{INNER} 0 {large},0 {} Z",
+        "M{} A{R},{R} 0 0,1 {} L{} A{INNER},{INNER} 0 0,0 {} Z",
         at(start, R),
         at(end, R),
         at(end, INNER),

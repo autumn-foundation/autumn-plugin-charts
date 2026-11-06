@@ -4,9 +4,7 @@ expression: pretty(&html)
 ---
 <figure class="autumn-charts-chart autumn-charts-chart--line">
 <figcaption class="autumn-charts-title">Sales</figcaption>
-<svg class="autumn-charts-svg" viewBox="0 0 640 320" role="img" aria-label="Sales" focusable="false">
-<title>Sales</title>
-<desc>Line chart with 2 series and 4 categories. Values range from 7 to 19.</desc>
+<svg class="autumn-charts-svg" viewBox="0 0 640 320" role="img" aria-label="Line chart with 2 series and 4 categories. Values (Units) range from 7 to 19." focusable="false">
 <g aria-hidden="true">
 <line class="autumn-charts-grid" x1="48" y1="272" x2="624" y2="272">
 </line>
@@ -93,7 +91,7 @@ expression: pretty(&html)
 </svg>South</li>
 </ul>
 <table class="autumn-charts-table autumn-visually-hidden">
-<caption>Sales</caption>
+<caption>Sales: Units</caption>
 <thead>
 <tr>
 <th scope="col">Quarter</th>

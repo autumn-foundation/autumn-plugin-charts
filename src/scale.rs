@@ -1,4 +1,6 @@
-//! Scales, ticks and number labels. Pure math, no markup.
+//! Scales, ticks and number labels. This module has only math. It writes
+//! no markup. The API is stable: a change to an output is a breaking
+//! change.
 //!
 //! Each function takes any `f64`, `NaN` and the infinities too. Each output
 //! is finite. `tests/scale.rs` checks this with proptests.
@@ -46,7 +48,16 @@ impl Ticks {
 /// `min..=max`.
 ///
 /// The ends can be in any order. A non-finite end gives `0..=1`. Equal ends
-/// give one tick. The result has 1 to [`MAX_TICKS`] values.
+/// give one tick. `count` clamps to `1..=18`. The result has 1 to
+/// [`MAX_TICKS`] values.
+///
+/// ```rust
+/// use autumn_charts_plugin::scale::nice_ticks;
+///
+/// let ticks = nice_ticks(3.0, 97.0, 5);
+/// assert_eq!(ticks.values(), &[0.0, 20.0, 40.0, 60.0, 80.0, 100.0]);
+/// assert_eq!(ticks.step(), 20.0);
+/// ```
 #[must_use]
 pub fn nice_ticks(min: f64, max: f64, count: usize) -> Ticks {
     let (lo, hi) = if min.is_finite() && max.is_finite() {
@@ -229,8 +240,11 @@ impl LinearScale {
     }
 }
 
-/// The default number label: up to three decimals, no trailing zeros.
-/// Exponent notation from `1e15` up and below `1e-4`.
+/// The default number label, with no trailing zeros.
+///
+/// Up to three decimals from 1 up. Below 1, up to three significant
+/// decimals, so `0.0004` stays `0.0004`. Exponent notation from `1e15` up
+/// and below `1e-4`.
 #[must_use]
 pub fn format_number(value: f64) -> String {
     if value.is_nan() {
@@ -240,38 +254,114 @@ pub fn format_number(value: f64) -> String {
         return if value > 0.0 { "∞" } else { "-∞" }.to_owned();
     }
     let abs = value.abs();
-    if abs != 0.0 && !(1e-4..1e15).contains(&abs) {
+    if abs == 0.0 {
+        return "0".to_owned();
+    }
+    if !(1e-4..1e15).contains(&abs) {
         return exponent(value, 3);
     }
-    trim(&format!("{value:.3}"))
+    let decimals = if abs < 1.0 {
+        usize::try_from((2 - exp10(abs)).clamp(3, 6)).unwrap_or(3)
+    } else {
+        3
+    };
+    trim(&format!("{value:.decimals$}"))
+}
+
+/// How the labels of one axis are written.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum Notation {
+    /// This many decimals.
+    Fixed(usize),
+    /// This many mantissa decimals.
+    Exponent(usize),
+}
+
+/// The power of ten of `v`: `floor(log10 |v|)`. `0` for zero.
+fn exp10(v: f64) -> i32 {
+    let e = v.abs().log10().floor();
+    if e.is_finite() {
+        #[allow(
+            clippy::cast_possible_truncation,
+            reason = "the log10 of a finite f64 is in -324..=309"
+        )]
+        let e = e as i32;
+        e
+    } else {
+        0
+    }
+}
+
+/// The notation that shows each multiple of `step` up to `max_abs` with a
+/// label of its own.
+fn notation(max_abs: f64, step: f64) -> Notation {
+    let decimals = (0..=15_u8)
+        .find(|&d| {
+            let scaled = step * pow10(i32::from(d));
+            (scaled - scaled.round()).abs() <= scaled * 1e-9
+        })
+        .map_or(16, usize::from);
+    let int_digits = usize::try_from(exp10(max_abs) + 1).unwrap_or(1).max(1);
+    if max_abs >= 1e15 || (max_abs > 0.0 && max_abs < 1e-4) || int_digits + decimals > 15 {
+        let digits = (exp10(max_abs) - exp10(step)).clamp(0, 16);
+        Notation::Exponent(usize::try_from(digits).unwrap_or(0))
+    } else {
+        Notation::Fixed(decimals)
+    }
+}
+
+/// `value` in `notation`. A value near zero is `0`.
+fn write(value: f64, step: f64, notation: Notation) -> String {
+    if value.abs() < step / 2.0 {
+        return "0".to_owned();
+    }
+    // A data end is not a multiple of the step. Give it three more digits.
+    let k = value / step;
+    let extra = if (k - k.round()).abs() > 1e-6 { 3 } else { 0 };
+    match notation {
+        Notation::Fixed(d) => {
+            let d = (d + extra).min(15);
+            trim(&format!("{value:.d$}"))
+        }
+        Notation::Exponent(d) => exponent(value, (d + extra).min(16)),
+    }
 }
 
 /// A tick label: the value rounded to the precision of `step`.
+///
+/// For the labels of a whole axis, use [`tick_labels`]: it uses one
+/// notation for all of them.
 #[must_use]
 pub fn format_tick(value: f64, step: f64) -> String {
     if !value.is_finite() || !step.is_finite() || step <= 0.0 {
         return format_number(value);
     }
-    if value.abs() < step / 2.0 {
-        return "0".to_owned();
+    write(value, step, notation(value.abs(), step))
+}
+
+/// The label of each tick, in one notation. Adjacent labels differ.
+///
+/// ```rust
+/// use autumn_charts_plugin::scale::{nice_ticks, tick_labels};
+///
+/// let ticks = nice_ticks(1.0, 1.000_000_5, 5);
+/// let labels = tick_labels(&ticks);
+/// assert_eq!(labels.first().map(String::as_str), Some("1"));
+/// assert!(labels.windows(2).all(|w| w[0] != w[1]));
+/// ```
+#[must_use]
+pub fn tick_labels(ticks: &Ticks) -> Vec<String> {
+    let step = ticks.step();
+    if !step.is_finite() || step <= 0.0 {
+        return ticks.values().iter().map(|t| format_number(*t)).collect();
     }
-    let decimals = (0..=12_u8)
-        .find(|&d| {
-            let scaled = step * pow10(i32::from(d));
-            (scaled - scaled.round()).abs() <= scaled * 1e-9
-        })
-        .map_or(13, usize::from);
-    let abs = value.abs();
-    if !(1e-4..1e15).contains(&abs) || decimals > 6 {
-        #[allow(
-            clippy::cast_possible_truncation,
-            clippy::cast_sign_loss,
-            reason = "clamped to 0..=6"
-        )]
-        let digits = (abs.log10().ceil() - step.log10().floor()).clamp(0.0, 6.0) as usize;
-        return exponent(value, digits);
-    }
-    trim(&format!("{value:.decimals$}"))
+    let max_abs = ticks.values().iter().fold(0.0_f64, |m, t| m.max(t.abs()));
+    let notation = notation(max_abs, step);
+    ticks
+        .values()
+        .iter()
+        .map(|t| write(*t, step, notation))
+        .collect()
 }
 
 /// `value` as `<mantissa>e<exp>`, with no trailing zeros in the mantissa.

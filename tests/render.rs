@@ -6,7 +6,7 @@
     reason = "a test fails on a panic"
 )]
 
-use autumn_charts_plugin::{AreaChart, BarChart, DonutChart, LineChart, Series, TableMode};
+use autumn_charts_plugin::{AreaChart, BarChart, DonutChart, LineChart, Series, TableMode, Words};
 use autumn_web::form::FieldOptions;
 use proptest::prelude::*;
 
@@ -56,10 +56,19 @@ fn path_ys(d: &str) -> Vec<f64> {
         .collect()
 }
 
+/// `true` when the markup has an ` on<name>=` attribute.
+fn has_on_attribute(html: &str) -> bool {
+    html.match_indices(" on").any(|(at, _)| {
+        let rest = &html[at + 3..];
+        let name: String = rest.chars().take_while(char::is_ascii_lowercase).collect();
+        !name.is_empty() && rest[name.len()..].starts_with('=')
+    })
+}
+
 fn assert_csp_safe(html: &str) {
     assert!(!html.contains("<script"), "{html}");
     assert!(!html.contains("style="), "{html}");
-    assert!(!html.contains(" on"), "an on* attribute: {html}");
+    assert!(!has_on_attribute(html), "an on* attribute: {html}");
     assert!(!html.contains("NaN"), "{html}");
     assert!(!html.contains("inf"), "{html}");
 }
@@ -80,10 +89,12 @@ fn the_root_is_a_figure_with_a_caption_and_an_svg_image() {
         html.contains(r#"<figcaption class="autumn-charts-title">Visits</figcaption>"#),
         "{html}"
     );
-    assert!(html.contains(r#"role="img""#), "{html}");
-    assert!(html.contains(r#"aria-label="Visits""#), "{html}");
-    assert!(html.contains("<title>Visits</title>"), "{html}");
-    assert!(html.contains("<desc>"), "{html}");
+    assert!(
+        html.contains(r#"role="img" aria-label="Line chart with 1 series and 4 categories. Values range from 0 to 100.""#),
+        "the image name is the summary, not the title again: {html}"
+    );
+    assert!(!html.contains("<title>Visits</title>"), "{html}");
+    assert!(!html.contains("<desc>"), "{html}");
     assert_csp_safe(&html);
 }
 
@@ -95,7 +106,7 @@ fn the_default_desc_sums_up_the_data() {
         .into_string();
     assert!(
         html.contains(
-            "<desc>Line chart with 2 series and 4 categories. Values range from 0 to 100.</desc>"
+            r#"aria-label="Line chart with 2 series and 4 categories. Values range from 0 to 100.""#
         ),
         "{html}"
     );
@@ -109,7 +120,7 @@ fn an_app_desc_replaces_the_default() {
         .render()
         .into_string();
     assert!(
-        html.contains("<desc>Visits grow each month.</desc>"),
+        html.contains(r#"aria-label="Visits grow each month.""#),
         "{html}"
     );
 }
@@ -220,11 +231,21 @@ fn axis_titles_show_when_set() {
 fn min_and_max_override_the_domain() {
     let series = one();
     let html = LineChart::new("Visits", &MONTHS, &series)
-        .min(0.0)
+        .min(-50.0)
         .max(200.0)
         .render()
         .into_string();
     assert!(html.contains(">200</text>"), "{html}");
+    assert!(html.contains(">-50</text>"), "{html}");
+    let plain = LineChart::new("Visits", &MONTHS, &series)
+        .render()
+        .into_string();
+    let ignored = LineChart::new("Visits", &MONTHS, &series)
+        .min(f64::NAN)
+        .max(f64::INFINITY)
+        .render()
+        .into_string();
+    assert_eq!(plain, ignored, "a non-finite min or max does nothing");
 }
 
 #[test]
@@ -247,7 +268,7 @@ fn a_line_domain_does_not_hold_zero_unless_asked() {
 fn the_formatter_writes_ticks_tips_and_table_values() {
     let series = one();
     let html = BarChart::new("Visits", &MONTHS, &series)
-        .format(|v| format!("{v} pts"))
+        .format(&|v| format!("{v} pts"))
         .render()
         .into_string();
     assert!(html.contains(">100 pts</text>"), "tick: {html}");
@@ -695,7 +716,7 @@ fn a_donut_takes_the_shared_options() {
     let options = FieldOptions::new().data("kind", "share");
     let html = DonutChart::new("Languages", &SHARE)
         .desc("Rust leads.")
-        .format(|v| format!("{v} users"))
+        .format(&|v| format!("{v} users"))
         .legend(false)
         .table(TableMode::Visible)
         .hide_title()
@@ -703,7 +724,7 @@ fn a_donut_takes_the_shared_options() {
         .options(&options)
         .render()
         .into_string();
-    assert!(html.contains("<desc>Rust leads.</desc>"), "{html}");
+    assert!(html.contains(r#"aria-label="Rust leads.""#), "{html}");
     assert!(html.contains("<td>50 users</td>"), "{html}");
     assert!(!html.contains("autumn-charts-legend"), "{html}");
     assert!(
@@ -755,7 +776,8 @@ fn empty_charts_render_with_no_data() {
         AreaChart::new("Empty", &[], &one()).render().into_string(),
         DonutChart::new("Empty", &[]).render().into_string(),
     ] {
-        assert!(html.contains("<desc>No data.</desc>"), "{html}");
+        assert!(html.contains(r#"aria-label="No data.""#), "{html}");
+        assert!(!html.contains("autumn-charts-legend"), "{html}");
         assert!(html.contains("autumn-charts-table"), "{html}");
         assert_csp_safe(&html);
     }
@@ -830,5 +852,318 @@ proptest! {
             prop_assert!(!html.contains("inf"), "{html}");
             prop_assert!(!html.contains("style="), "{html}");
         }
+    }
+}
+
+// ── Review regressions ──────────────────────────────────────────────────────
+
+#[test]
+fn the_tick_count_sets_the_y_ticks() {
+    let html = LineChart::new("Visits", &MONTHS, &one())
+        .ticks(10)
+        .render()
+        .into_string();
+    assert_eq!(
+        html.matches(r#"class="autumn-charts-tick autumn-charts-tick--y""#)
+            .count(),
+        11,
+        "{html}"
+    );
+}
+
+#[test]
+fn the_y_title_is_in_the_summary_and_the_caption() {
+    let html = LineChart::new("Visits", &MONTHS, &one())
+        .y_label("per day")
+        .render()
+        .into_string();
+    assert!(
+        html.contains("Values (per day) range from 0 to 100."),
+        "{html}"
+    );
+    assert!(
+        html.contains("<caption>Visits: per day</caption>"),
+        "{html}"
+    );
+}
+
+#[test]
+fn an_empty_legend_is_not_written() {
+    let none: [Series<'_>; 0] = [];
+    let html = LineChart::new("Empty", &MONTHS, &none)
+        .legend(true)
+        .render()
+        .into_string();
+    assert!(!html.contains("autumn-charts-legend"), "{html}");
+}
+
+#[test]
+fn three_grouped_bars_sit_in_order() {
+    let c = [5.0, 5.0, 5.0, 5.0];
+    let series = [
+        Series::new("A", &VISITS),
+        Series::new("B", &SIGNUPS),
+        Series::new("C", &c),
+    ];
+    let html = BarChart::new("Three", &MONTHS, &series)
+        .render()
+        .into_string();
+    let x0 = numbers(&html, "autumn-charts-bar autumn-charts-s0", "x");
+    let x1 = numbers(&html, "autumn-charts-bar autumn-charts-s1", "x");
+    let x2 = numbers(&html, "autumn-charts-bar autumn-charts-s2", "x");
+    for i in 0..4 {
+        assert!(x0[i] < x1[i] && x1[i] < x2[i], "category {i}");
+    }
+}
+
+#[test]
+fn a_mixed_sign_stack_puts_the_negative_below_zero() {
+    let a = [5.0];
+    let b = [-5.0];
+    let series = [Series::new("A", &a), Series::new("B", &b)];
+    let html = BarChart::new("Net", &["x"], &series)
+        .stacked()
+        .render()
+        .into_string();
+    let zero = numbers(&html, "autumn-charts-zero", "y1")[0];
+    let ya = numbers(&html, "autumn-charts-bar autumn-charts-s0", "y")[0];
+    let ha = numbers(&html, "autumn-charts-bar autumn-charts-s0", "height")[0];
+    let yb = numbers(&html, "autumn-charts-bar autumn-charts-s1", "y")[0];
+    assert!((ya + ha - zero).abs() < 0.01, "A sits on zero");
+    assert!((yb - zero).abs() < 0.01, "B hangs from zero, not from A");
+}
+
+#[test]
+fn a_stacked_area_with_a_missing_value_has_no_hole() {
+    let a = [1.0, f64::NAN, 3.0, 4.0];
+    let series = [Series::new("A", &a), Series::new("B", &SIGNUPS)];
+    let html = AreaChart::new("Holes", &MONTHS, &series)
+        .stacked()
+        .render()
+        .into_string();
+    for k in 0..2 {
+        let d = attrs(
+            &html,
+            &format!("autumn-charts-area autumn-charts-s{k}"),
+            "d",
+        );
+        assert_eq!(d[0].matches('M').count(), 1, "one shape: {}", d[0]);
+    }
+    assert_eq!(html.matches(r#"class="autumn-charts-mark""#).count(), 7);
+}
+
+#[test]
+fn the_dense_class_starts_past_forty_categories() {
+    for (n, dense) in [(40, false), (41, true)] {
+        let labels: Vec<String> = (0..n).map(|i| i.to_string()).collect();
+        let cats: Vec<&str> = labels.iter().map(String::as_str).collect();
+        let values = vec![1.0; n];
+        let series = [Series::new("S", &values)];
+        let html = LineChart::new("D", &cats, &series).render().into_string();
+        assert_eq!(html.contains("autumn-charts-chart--dense"), dense, "{n}");
+    }
+}
+
+#[test]
+fn a_tip_near_the_top_goes_below_the_mark() {
+    let html = BarChart::new("Visits", &MONTHS, &one())
+        .focusable()
+        .render()
+        .into_string();
+    let ys = numbers(&html, "autumn-charts-bar autumn-charts-s0", "y");
+    let tips = numbers(&html, "autumn-charts-tip", "y");
+    assert!(tips[3] > ys[3], "the tallest bar has its tip below its top");
+    assert!(tips[1] < ys[1], "a short bar has its tip above it");
+}
+
+#[test]
+fn long_x_labels_stay_in_the_view_box() {
+    let cats = ["A very long category name!", "Another very long category"];
+    let values = [1.0, 2.0];
+    let series = [Series::new("S", &values)];
+    let html = LineChart::new("Long", &cats, &series)
+        .render()
+        .into_string();
+    let xs = numbers(&html, "autumn-charts-tick autumn-charts-tick--x", "x");
+    let half = 26.0 * 7.0 / 2.0;
+    assert!(xs[0] - half >= 0.0, "{xs:?}");
+    assert!(xs[1] + half <= 640.0, "{xs:?}");
+}
+
+#[test]
+fn bars_and_slices_have_a_shape_cue_as_well_as_a_color() {
+    let html = BarChart::new("Traffic", &MONTHS, &two())
+        .render()
+        .into_string();
+    assert!(html.contains(r#"class="autumn-charts-glyph""#), "{html}");
+    let legend = &html[html.find("autumn-charts-legend").unwrap()..];
+    assert!(legend.contains("autumn-charts-swatch-glyph"), "{legend}");
+    let html = DonutChart::new("Languages", &SHARE).render().into_string();
+    assert_eq!(
+        html.matches(r#"class="autumn-charts-glyph""#).count(),
+        3,
+        "{html}"
+    );
+}
+
+#[test]
+fn a_short_bar_has_no_shape_cue() {
+    let values = [100.0, 1.0];
+    let series = [Series::new("S", &values)];
+    let html = BarChart::new("Short", &["a", "b"], &series)
+        .render()
+        .into_string();
+    assert_eq!(
+        html.matches(r#"class="autumn-charts-glyph""#).count(),
+        1,
+        "{html}"
+    );
+}
+
+#[test]
+fn an_area_legend_shows_the_line_style() {
+    let html = AreaChart::new("Traffic", &MONTHS, &two())
+        .render()
+        .into_string();
+    assert!(html.contains("autumn-charts-swatch-line"), "{html}");
+}
+
+#[test]
+fn the_table_words_can_change() {
+    let words = Words::new()
+        .category("Monat")
+        .value("Wert")
+        .share("Anteil")
+        .no_value("Kein Wert");
+    let gaps = [1.0, f64::NAN];
+    let series = [Series::new("S", &gaps)];
+    let html = BarChart::new("Werte", &["a", "b"], &series)
+        .words(words)
+        .render()
+        .into_string();
+    assert!(html.contains(r#"<th scope="col">Monat</th>"#), "{html}");
+    assert!(html.contains("<td>Kein Wert</td>"), "{html}");
+    let html = DonutChart::new("Anteile", &SHARE)
+        .words(words)
+        .render()
+        .into_string();
+    assert!(
+        html.contains(r#"<th scope="col">Wert</th><th scope="col">Anteil</th>"#),
+        "{html}"
+    );
+}
+
+fn slice_d(html: &str, k: usize) -> String {
+    attrs(
+        html,
+        &format!("autumn-charts-slice autumn-charts-s{k}"),
+        "d",
+    )[0]
+    .clone()
+}
+
+#[test]
+fn a_slice_past_half_draws_in_two_arcs() {
+    let html = DonutChart::new("Split", &[("A", 80.0), ("B", 20.0)])
+        .render()
+        .into_string();
+    assert_eq!(slice_d(&html, 0).matches("A96,96").count(), 2, "{html}");
+    assert_eq!(slice_d(&html, 1).matches("A96,96").count(), 1, "{html}");
+}
+
+#[test]
+fn a_near_full_slice_still_draws() {
+    let html = DonutChart::new("Big", &[("big", 200_000.0), ("small", 1.0)])
+        .render()
+        .into_string();
+    let d = slice_d(&html, 0);
+    assert_eq!(d.matches("A96,96").count(), 2, "{d}");
+    assert!(!d.starts_with("M100,4 A96,96 0 1,1 100,4"), "{d}");
+}
+
+#[test]
+fn shares_do_not_round_to_all_or_nothing() {
+    let html = DonutChart::new("Skew", &[("a", 9996.0), ("b", 4.0)])
+        .render()
+        .into_string();
+    assert!(html.contains("a: 9996 (&gt;99.9%)"), "{html}");
+    assert!(html.contains("b: 4 (&lt;0.1%)"), "{html}");
+    let html = DonutChart::new("One", &[("only", 3.0)])
+        .render()
+        .into_string();
+    assert!(html.contains("only: 3 (100%)"), "{html}");
+}
+
+#[test]
+fn a_donut_with_no_positive_value_draws_nothing() {
+    let html = DonutChart::new("None", &[("a", 0.0), ("b", -1.0)])
+        .render()
+        .into_string();
+    assert!(!html.contains("autumn-charts-slice"), "{html}");
+    assert!(!html.contains("autumn-charts-legend"), "{html}");
+    assert!(html.contains(r#"aria-label="No data.""#), "{html}");
+    assert!(
+        html.contains(r#"<th scope="row">a</th><td>0</td><td>No value</td>"#),
+        "{html}"
+    );
+}
+
+#[test]
+fn a_donut_table_can_show_in_a_details_element() {
+    let html = DonutChart::new("Languages", &SHARE)
+        .table(TableMode::Details)
+        .render()
+        .into_string();
+    assert!(
+        html.contains(r#"<details class="autumn-charts-data">"#),
+        "{html}"
+    );
+}
+
+proptest! {
+    #![proptest_config(ProptestConfig::with_cases(256))]
+
+    #[test]
+    fn bars_stay_in_the_plot(
+        a in prop::collection::vec(value(), 1..8),
+        b in prop::collection::vec(value(), 1..8),
+        stacked in any::<bool>(),
+        min in prop::option::of(value()),
+        max in prop::option::of(value()),
+    ) {
+        let cats = ["A", "B", "C", "D", "E", "F", "G", "H"];
+        let series = [Series::new("One", &a), Series::new("Two", &b)];
+        let mut chart = BarChart::new("B", &cats, &series);
+        if stacked {
+            chart = chart.stacked();
+        }
+        if let Some(v) = min {
+            chart = chart.min(v);
+        }
+        if let Some(v) = max {
+            chart = chart.max(v);
+        }
+        let html = chart.render().into_string();
+        let finite = a.iter().chain(&b).filter(|v| v.is_finite()).count();
+        prop_assert_eq!(html.matches("<rect").count(), finite);
+        for h in numbers(&html, "autumn-charts-bar ", "height") {
+            prop_assert!(h >= 0.0, "height {}", h);
+        }
+        for y in numbers(&html, "autumn-charts-bar ", "y") {
+            prop_assert!((0.0..=320.0).contains(&y), "y {}", y);
+        }
+        for x in numbers(&html, "autumn-charts-bar ", "x") {
+            prop_assert!((0.0..=640.0).contains(&x), "x {}", x);
+        }
+    }
+
+    #[test]
+    fn a_line_has_one_mark_for_each_finite_value(a in prop::collection::vec(value(), 0..12)) {
+        let labels: Vec<String> = (0..a.len()).map(|i| i.to_string()).collect();
+        let cats: Vec<&str> = labels.iter().map(String::as_str).collect();
+        let series = [Series::new("S", &a)];
+        let html = LineChart::new("L", &cats, &series).render().into_string();
+        let finite = a.iter().filter(|v| v.is_finite()).count();
+        prop_assert_eq!(html.matches(r#"class="autumn-charts-mark""#).count(), finite);
     }
 }

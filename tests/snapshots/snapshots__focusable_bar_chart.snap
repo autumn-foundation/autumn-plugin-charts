@@ -4,9 +4,7 @@ expression: pretty(&html)
 ---
 <figure class="autumn-charts-chart autumn-charts-chart--bar">
 <figcaption class="autumn-charts-title">Sales</figcaption>
-<svg class="autumn-charts-svg" viewBox="0 0 640 320" role="group" aria-label="Sales">
-<title>Sales</title>
-<desc>Bar chart with 1 series and 4 categories. Values range from 7 to 19.</desc>
+<svg class="autumn-charts-svg" viewBox="0 0 640 320" role="group" aria-label="Bar chart with 1 series and 4 categories. Values range from 7 to 19.">
 <g aria-hidden="true">
 <line class="autumn-charts-grid" x1="28" y1="292" x2="624" y2="292">
 </line>
@@ -35,21 +33,29 @@ expression: pretty(&html)
 <g class="autumn-charts-mark" tabindex="0" role="img" aria-label="North, Q1: 12">
 <rect class="autumn-charts-bar autumn-charts-s0" x="48.86" y="126.4" width="107.28" height="165.6">
 </rect>
+<path class="autumn-charts-glyph" d="M99.5,209.2 A3,3 0 1,0 105.5,209.2 A3,3 0 1,0 99.5,209.2 Z">
+</path>
 <text class="autumn-charts-tip" x="102.5" y="116.4" text-anchor="start">North, Q1: 12</text>
 </g>
 <g class="autumn-charts-mark" tabindex="0" role="img" aria-label="North, Q2: 19">
 <rect class="autumn-charts-bar autumn-charts-s0" x="197.86" y="29.8" width="107.28" height="262.2">
 </rect>
+<path class="autumn-charts-glyph" d="M248.5,160.9 A3,3 0 1,0 254.5,160.9 A3,3 0 1,0 248.5,160.9 Z">
+</path>
 <text class="autumn-charts-tip" x="251.5" y="19.8" text-anchor="middle">North, Q2: 19</text>
 </g>
 <g class="autumn-charts-mark" tabindex="0" role="img" aria-label="North, Q3: 7">
 <rect class="autumn-charts-bar autumn-charts-s0" x="346.86" y="195.4" width="107.28" height="96.6">
 </rect>
+<path class="autumn-charts-glyph" d="M397.5,243.7 A3,3 0 1,0 403.5,243.7 A3,3 0 1,0 397.5,243.7 Z">
+</path>
 <text class="autumn-charts-tip" x="400.5" y="185.4" text-anchor="middle">North, Q3: 7</text>
 </g>
 <g class="autumn-charts-mark" tabindex="0" role="img" aria-label="North, Q4: 15">
 <rect class="autumn-charts-bar autumn-charts-s0" x="495.86" y="85" width="107.28" height="207">
 </rect>
+<path class="autumn-charts-glyph" d="M546.5,188.5 A3,3 0 1,0 552.5,188.5 A3,3 0 1,0 546.5,188.5 Z">
+</path>
 <text class="autumn-charts-tip" x="549.5" y="75" text-anchor="end">North, Q4: 15</text>
 </g>
 </svg>

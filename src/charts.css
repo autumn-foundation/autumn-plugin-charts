@@ -85,9 +85,18 @@
     fill: var(--autumn-charts-color);
 }
 
+/* A gap between stacked segments and between slices. */
+.autumn-charts-bar,
 .autumn-charts-slice {
     stroke: var(--bg);
-    stroke-width: 1.5;
+    stroke-width: 1;
+}
+
+/* The marker shape cut out of a bar or a slice: a cue that is not color. */
+.autumn-charts-glyph,
+.autumn-charts-swatch-glyph {
+    fill: var(--bg);
+    stroke: none;
 }
 
 .autumn-charts-total {
@@ -102,8 +111,9 @@
 }
 
 /* Hover and focus details. A focusable mark has a tip. */
-.autumn-charts-mark {
-    outline: none;
+.autumn-charts-mark:focus-visible {
+    outline: 2px solid var(--text);
+    outline-offset: 2px;
 }
 
 .autumn-charts-mark:hover .autumn-charts-bar,
@@ -115,6 +125,7 @@
     opacity: 1;
     stroke: var(--text);
     stroke-width: 2;
+    vector-effect: non-scaling-stroke;
 }
 
 .autumn-charts-tip {
@@ -126,7 +137,6 @@
     stroke: var(--bg);
     stroke-width: 4px;
     stroke-linejoin: round;
-    pointer-events: none;
 }
 
 .autumn-charts-mark:hover .autumn-charts-tip,
@@ -213,8 +223,14 @@
 
 @media (forced-colors: active) {
     .autumn-charts-line,
-    .autumn-charts-swatch-line {
+    .autumn-charts-swatch-line,
+    .autumn-charts-axis,
+    .autumn-charts-zero {
         stroke: CanvasText;
+    }
+
+    .autumn-charts-grid {
+        stroke: GrayText;
     }
 
     .autumn-charts-bar,
@@ -222,7 +238,36 @@
     .autumn-charts-marker,
     .autumn-charts-area,
     .autumn-charts-swatch-marker,
-    .autumn-charts-swatch-fill {
+    .autumn-charts-swatch-fill,
+    .autumn-charts-tick,
+    .autumn-charts-axis-label,
+    .autumn-charts-center-label,
+    .autumn-charts-total,
+    .autumn-charts-tip {
         fill: CanvasText;
+    }
+
+    .autumn-charts-bar,
+    .autumn-charts-slice,
+    .autumn-charts-tip {
+        stroke: Canvas;
+    }
+
+    .autumn-charts-glyph,
+    .autumn-charts-swatch-glyph {
+        fill: Canvas;
+    }
+
+    .autumn-charts-mark:focus-visible {
+        outline-color: Highlight;
+    }
+
+    .autumn-charts-mark:hover .autumn-charts-bar,
+    .autumn-charts-mark:hover .autumn-charts-slice,
+    .autumn-charts-mark:hover .autumn-charts-marker,
+    .autumn-charts-mark:focus-visible .autumn-charts-bar,
+    .autumn-charts-mark:focus-visible .autumn-charts-slice,
+    .autumn-charts-mark:focus-visible .autumn-charts-marker {
+        stroke: Highlight;
     }
 }

@@ -159,6 +159,15 @@ async fn tab_moves_through_the_bars_and_shows_each_tip() {
     {
         page.press("Tab").await.expect("tab");
         assert_eq!(eval::<String>(&page, ACTIVE_JS).await, *label);
+        assert_eq!(
+            eval::<String>(
+                &page,
+                "getComputedStyle(document.activeElement).outlineStyle"
+            )
+            .await,
+            "solid",
+            "the focused mark has an outline"
+        );
         let tips: Vec<String> =
             serde_json::from_str(&eval::<String>(&page, TIPS_JS).await).expect("tips");
         for (j, tip) in tips.iter().enumerate() {

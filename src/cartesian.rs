@@ -2,8 +2,8 @@
 
 use maud::{Markup, Render, html};
 
-use crate::chart::{Common, NO_VALUE, Swatch, Tip, common_setters};
-use crate::scale::{LinearScale, Ticks, domain, format_tick, nice_ticks};
+use crate::chart::{Common, Swatch, Tip, common_setters};
+use crate::scale::{LinearScale, Ticks, domain, nice_ticks, tick_labels};
 use crate::series::Series;
 use crate::svg::{count, marker, num, polyline, round, style_class, text_width};
 
@@ -35,6 +35,10 @@ const H: f64 = 320.0;
 const DENSE: usize = 40;
 /// The marker radius.
 const MARKER: f64 = 3.5;
+/// The radius of the marker shape in a bar or a slice.
+pub const GLYPH: f64 = 3.0;
+/// The smallest bar side that has room for the marker shape.
+const GLYPH_ROOM: f64 = 10.0;
 /// The gap between the y axis and the first point of a line or an area.
 const INSET: f64 = 12.0;
 
@@ -130,22 +134,17 @@ impl Cartesian<'_> {
     fn frame(&self, kind: Kind, points: &[Vec<Point>], common: &Common<'_>) -> Frame {
         let (lo, hi) = self.y_domain(kind, points);
         let ticks = nice_ticks(lo, hi, self.ticks);
-        let tick_text: Vec<String> = ticks
-            .values()
-            .iter()
-            .map(|t| {
-                common
-                    .format
-                    .map_or_else(|| format_tick(*t, ticks.step()), |f| f(*t))
-            })
-            .collect();
+        let tick_text: Vec<String> = common.format.map_or_else(
+            || tick_labels(&ticks),
+            |f| ticks.values().iter().map(|t| f(*t)).collect(),
+        );
         let widest = tick_text.iter().map(|t| text_width(t)).fold(0.0, f64::max);
         let y_title = if self.y_label.is_some() { 20.0 } else { 0.0 };
         let x_title = if self.x_label.is_some() { 20.0 } else { 0.0 };
         let x0 = (widest + 12.0).clamp(28.0, 160.0) + y_title;
         let (x1, y0, y1) = (W - 16.0, 16.0, H - 28.0 - x_title);
         let n = self.categories.len();
-        // X labels thin out so they do not overlap.
+        // The chart shows fewer x labels so that they do not overlap.
         let widest_x = self
             .categories
             .iter()
@@ -188,7 +187,7 @@ impl Cartesian<'_> {
                 line class="autumn-charts-axis" x1=(num(f.x0)) y1=(num(f.y1)) x2=(num(f.x1)) y2=(num(f.y1)) {}
                 line class="autumn-charts-axis" x1=(num(f.x0)) y1=(num(f.y0)) x2=(num(f.x0)) y2=(num(f.y1)) {}
                 @for (i, cat) in self.categories.iter().enumerate().step_by(f.every) {
-                    text class="autumn-charts-tick autumn-charts-tick--x" x=(num(f.x(i)))
+                    text class="autumn-charts-tick autumn-charts-tick--x" x=(num(label_x(f.x(i), cat)))
                         y=(num(f.y1 + 18.0)) text-anchor="middle" { (cat) }
                 }
                 @if let Some(title) = self.x_label {
@@ -233,6 +232,11 @@ impl Cartesian<'_> {
                 @let shape = html! {
                     rect class={ "autumn-charts-bar " (style) } x=(num(width.mul_add(0.05, x)))
                         y=(num(top)) width=(num(width * 0.9)) height=(num(bottom - top)) {}
+                    // The marker shape cut out of the bar: a cue that is not color.
+                    @if width * 0.9 >= GLYPH_ROOM && bottom - top >= GLYPH_ROOM {
+                        path class="autumn-charts-glyph"
+                            d=(marker(k, width.mul_add(0.5, x), f64::midpoint(top, bottom), GLYPH)) {}
+                    }
                 };
                 (common.mark(&self.label(k, p, common), &shape, f.tip(width.mul_add(0.5, x), top)))
             }
@@ -275,7 +279,7 @@ impl Cartesian<'_> {
                 let cells = (0..self.series.len())
                     .map(|k| {
                         self.value(k, i)
-                            .map_or_else(|| NO_VALUE.to_owned(), |v| common.text(v))
+                            .map_or_else(|| common.words.no_value.to_owned(), |v| common.text(v))
                     })
                     .collect();
                 (*cat, cells)
@@ -302,12 +306,12 @@ impl Cartesian<'_> {
             .enumerate()
             .map(|(k, s)| (k, s.name().to_owned()))
             .collect();
-        let swatch = if kind == Kind::Line {
-            Swatch::Line
-        } else {
+        let swatch = if kind == Kind::Bar {
             Swatch::Fill
+        } else {
+            Swatch::Line
         };
-        let mut head = vec![self.x_label.unwrap_or("Category")];
+        let mut head = vec![self.x_label.unwrap_or(common.words.category)];
         head.extend(self.series.iter().map(Series::name));
         common.root(
             kind.name(),
@@ -317,7 +321,7 @@ impl Cartesian<'_> {
                 @if common.shows_legend(legend.len(), legend.len() > 1) {
                     (Common::legend(swatch, &legend))
                 }
-                (common.table(&head, &self.rows(common)))
+                (common.table(&head, &self.rows(common), self.y_label))
             },
         )
     }
@@ -343,8 +347,9 @@ impl Cartesian<'_> {
             (Kind::Area, true) => "Stacked area chart",
         };
         let n = self.categories.len();
+        let unit = self.y_label.map(|u| format!(" ({u})")).unwrap_or_default();
         format!(
-            "{name} with {} series and {n} {}. Values range from {} to {}.",
+            "{name} with {} series and {n} {}. Values{unit} range from {} to {}.",
             self.series.len(),
             if n == 1 { "category" } else { "categories" },
             common.text(lo),
@@ -360,6 +365,17 @@ impl Kind {
             Self::Bar => "bar",
             Self::Area => "area",
         }
+    }
+}
+
+/// The x of a centred label at `x`, moved so that the label stays in the
+/// `viewBox`.
+fn label_x(x: f64, text: &str) -> f64 {
+    let half = text_width(text) / 2.0 + 2.0;
+    if half * 2.0 >= W {
+        W / 2.0
+    } else {
+        x.clamp(half, W - half)
     }
 }
 
@@ -384,8 +400,8 @@ impl Frame {
         (self.x1 - self.x0) / count(self.n.max(1))
     }
 
-    /// The x of category `i`: the band centre for bars, else spread from
-    /// end to end.
+    /// The x of category `i`. For bars, it is the band centre. Else the
+    /// points are at equal distances across the plot.
     fn x(&self, i: usize) -> f64 {
         let width = self.x1 - self.x0;
         if self.kind == Kind::Bar {
@@ -514,7 +530,8 @@ macro_rules! cartesian_chart {
                 self
             }
 
-            /// Set the y axis minimum.
+            /// Set the y axis minimum. A bar chart or an area chart with a
+            /// minimum above 0 draws from the axis, not from 0.
             #[must_use]
             pub const fn min(mut self, min: f64) -> Self {
                 self.inner.min = Some(min);
@@ -528,7 +545,8 @@ macro_rules! cartesian_chart {
                 self
             }
 
-            /// Set about how many y ticks to show.
+            /// Set about how many y ticks to show. The count clamps to
+            /// `1..=18`.
             #[must_use]
             pub const fn ticks(mut self, count: usize) -> Self {
                 self.inner.ticks = count;
@@ -553,6 +571,19 @@ macro_rules! cartesian_chart {
 cartesian_chart! {
     /// A line chart: one line for each series. A missing value breaks
     /// the line.
+    ///
+    /// ```rust
+    /// use autumn_charts_plugin::{LineChart, Series};
+    ///
+    /// let months = ["Jan", "Feb", "Mar"];
+    /// let visits = [120.0, f64::NAN, 101.0];
+    /// let series = [Series::new("Visits", &visits)];
+    /// let html = LineChart::new("Visits", &months, &series)
+    ///     .y_label("per day")
+    ///     .render()
+    ///     .into_string();
+    /// assert!(html.contains("<th scope=\"row\">Feb</th><td>No value</td>"));
+    /// ```
     LineChart, Kind::Line
 }
 cartesian_chart! {
@@ -562,7 +593,7 @@ cartesian_chart! {
 }
 cartesian_chart! {
     /// An area chart: each series fills down to zero, or stacks with
-    /// [`AreaChart::stacked`].
+    /// [`AreaChart::stacked`]. In a stack, give each series one sign.
     AreaChart, Kind::Area
 }
 

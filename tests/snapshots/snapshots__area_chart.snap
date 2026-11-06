@@ -4,9 +4,7 @@ expression: pretty(&html)
 ---
 <figure class="autumn-charts-chart autumn-charts-chart--area">
 <figcaption class="autumn-charts-title">Sales</figcaption>
-<svg class="autumn-charts-svg" viewBox="0 0 640 320" role="img" aria-label="Sales" focusable="false">
-<title>Sales</title>
-<desc>Area chart with 2 series and 4 categories. Values range from 7 to 19.</desc>
+<svg class="autumn-charts-svg" viewBox="0 0 640 320" role="img" aria-label="Area chart with 2 series and 4 categories. Values range from 7 to 19." focusable="false">
 <g aria-hidden="true">
 <line class="autumn-charts-grid" x1="28" y1="292" x2="624" y2="292">
 </line>
@@ -84,12 +82,16 @@ expression: pretty(&html)
 <ul class="autumn-charts-legend">
 <li class="autumn-charts-legend-item">
 <svg class="autumn-charts-swatch autumn-charts-s0" viewBox="0 0 24 12" aria-hidden="true" focusable="false">
-<path class="autumn-charts-swatch-fill" d="M2,1H22V11H2Z">
+<path class="autumn-charts-swatch-line" d="M1,6H23">
+</path>
+<path class="autumn-charts-swatch-marker" d="M9,6 A3,3 0 1,0 15,6 A3,3 0 1,0 9,6 Z">
 </path>
 </svg>North</li>
 <li class="autumn-charts-legend-item">
 <svg class="autumn-charts-swatch autumn-charts-s1" viewBox="0 0 24 12" aria-hidden="true" focusable="false">
-<path class="autumn-charts-swatch-fill" d="M2,1H22V11H2Z">
+<path class="autumn-charts-swatch-line" d="M1,6H23">
+</path>
+<path class="autumn-charts-swatch-marker" d="M9.3,3.3 L14.7,3.3 L14.7,8.7 L9.3,8.7 Z">
 </path>
 </svg>South</li>
 </ul>

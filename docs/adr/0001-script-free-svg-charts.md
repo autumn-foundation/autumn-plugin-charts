@@ -26,7 +26,11 @@ Option 3.
   (`x`, `y`, `d`, `width`, `height`). No `style` attribute.
 - The pack CSS holds the look. Each series gets a class
   `autumn-charts-s0`…`s5`: a token color, a dash pattern and a marker
-  shape. Color is not the only cue.
+  shape. A bar or a slice has the marker shape cut out of it. Color is not
+  the only cue. The cues need no `id`, so two charts on one page do not
+  collide.
+- The `<figcaption>` names the figure. A summary names the SVG. The title
+  is not read two times.
 - Each chart writes a data table. It is visually hidden by default. The
   app can show it, or put it in a `<details>`.
 - Each mark has a `<title>`. `.focusable()` makes each mark a tab stop

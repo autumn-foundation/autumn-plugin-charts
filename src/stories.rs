@@ -74,8 +74,10 @@ fn donut() -> Markup {
 
 fn hover_details() -> Markup {
     let series = [Series::new("Mobile", &MOBILE)];
+    let area = [Series::new("Web", &WEB), Series::new("Desktop", &DESKTOP)];
     html! {
         (BarChart::new("Mobile visits", &MONTHS, &series).focusable().render())
+        (AreaChart::new("Web and desktop visits", &MONTHS, &area).focusable().render())
         (DonutChart::new("Plan mix", &[("Free", 120.0), ("Team", 45.0), ("Business", 12.0)])
             .focusable()
             .center_label("Accounts")
@@ -100,7 +102,7 @@ fn format() -> Markup {
     let series = [Series::new("Conversion", &rate)];
     LineChart::new("Conversion rate", &MONTHS, &series)
         .zero_baseline()
-        .format(|v| format!("{:.0}%", v * 100.0))
+        .format(&|v| format!("{:.0}%", v * 100.0))
         .render()
 }
 

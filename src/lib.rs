@@ -10,7 +10,8 @@
 //! - donut charts.
 //!
 //! Each chart writes a data table: the text alternative. Each mark has a
-//! `<title>`. With `focusable`, each mark is a tab stop with a tip.
+//! `<title>`. With `focusable`, each mark is a tab stop with an
+//! `aria-label` and a tip.
 //!
 //! # Install
 //!
@@ -76,7 +77,7 @@ use autumn_web::plugin::Plugin;
 use autumn_web::widget_pack::WidgetPack;
 
 pub use cartesian::{AreaChart, BarChart, LineChart};
-pub use chart::{Formatter, TableMode};
+pub use chart::{Formatter, TableMode, Words};
 pub use donut::DonutChart;
 pub use series::Series;
 
